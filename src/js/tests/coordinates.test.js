@@ -1,4 +1,4 @@
-import { Coordinates } from '../src/js/coordinates.js';
+import { Coordinates } from '../coordinates.js';
 
 describe('Coordinates.parseCoordinates', () => {
     test('парсит координаты с пробелом после запятой', () => {
