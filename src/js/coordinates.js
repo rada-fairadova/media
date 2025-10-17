@@ -1,35 +1,67 @@
-export function parseCoordinates(input) {
-    if (!input || typeof input !== 'string') {
-        throw new Error('Invalid input: must be a non-empty string');
+export class Coordinates {
+    static parseCoordinates(input) {
+        if (!input || typeof input !== 'string') {
+            throw new Error('Введите координаты');
+        }
+
+        const cleanedInput = input
+            .replace(/\s*,\s*/g, ',')
+            .replace(/[\[\]]/g, '')
+            .trim();
+
+        const parts = cleanedInput.split(',');
+        
+        if (parts.length !== 2) {
+            throw new Error('Координаты должны содержать широту и долготу, разделенные запятой');
+        }
+
+        const latitude = parseFloat(parts[0]);
+        const longitude = parseFloat(parts[1]);
+
+        if (isNaN(latitude) || isNaN(longitude)) {
+            throw new Error('Широта и долгота должны быть числами');
+        }
+
+        if (latitude < -90 || latitude > 90) {
+            throw new Error('Широта должна быть в диапазоне от -90 до 90');
+        }
+
+        if (longitude < -180 || longitude > 180) {
+            throw new Error('Долгота должна быть в диапазоне от -180 до 180');
+        }
+
+        return {
+            latitude,
+            longitude,
+            toString() {
+                return `${this.latitude.toFixed(5)}, ${this.longitude.toFixed(5)}`;
+            }
+        };
     }
 
-    let cleanedInput = input.replace(/[\[\]]/g, '');
-    
-    const parts = cleanedInput.split(',').map(part => part.trim());
-    
-    if (parts.length !== 2) {
-        throw new Error('Invalid format: must contain exactly one comma separating latitude and longitude');
+    static async getCurrentPosition() {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject(new Error('Geolocation не поддерживается'));
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    resolve({
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    });
+                },
+                (error) => {
+                    reject(new Error('Не удалось получить координаты'));
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 60000
+                }
+            );
+        });
     }
-
-    const [latStr, lonStr] = parts;
-
-    const latitude = parseFloat(latStr);
-    const longitude = parseFloat(lonStr);
-
-    if (isNaN(latitude) || isNaN(longitude)) {
-        throw new Error('Invalid coordinates: latitude and longitude must be valid numbers');
-    }
-
-    if (latitude < -90 || latitude > 90) {
-        throw new Error('Invalid latitude: must be between -90 and 90');
-    }
-
-    if (longitude < -180 || longitude > 180) {
-        throw new Error('Invalid longitude: must be between -180 and 180');
-    }
-
-    return {
-        latitude,
-        longitude
-    };
 }

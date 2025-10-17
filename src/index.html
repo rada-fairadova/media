@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,31 +7,37 @@
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>My Timeline</h1>
+        <header class="header">
+            <h1>Timeline</h1>
         </header>
         
-        <main>
+        <main class="main">
             <div class="timeline" id="timeline">
             </div>
             
-            <div class="input-area">
-                <input type="text" id="textInput" placeholder="Type your message and press Enter...">
+            <div class="input-container">
+                <textarea 
+                    id="textInput" 
+                    placeholder="Введите текст сообщения и нажмите Enter..."
+                    rows="3"
+                ></textarea>
             </div>
         </main>
+    </div>
 
-        <div class="modal" id="coordinatesModal">
-            <div class="modal-content">
-                <h3>Geolocation Unavailable</h3>
-                <p>Please enter your coordinates manually:</p>
-                <input type="text" id="manualCoordinates" placeholder="e.g., 51.50851, -0.12572">
-                <div class="modal-buttons">
-                    <button id="confirmCoordinates">Confirm</button>
-                    <button id="cancelCoordinates">Cancel</button>
-                </div>
-                <p class="error-message" id="coordinatesError"></p>
+    <div class="modal" id="coordinatesModal">
+        <div class="modal-content">
+            <h3>Координаты не доступны</h3>
+            <p>Пожалуйста, введите координаты вручную в формате: широта, долгота</p>
+            <input type="text" id="coordinatesInput" placeholder="Например: 51.50851, -0.12572">
+            <div class="modal-actions">
+                <button id="confirmCoordinates">Подтвердить</button>
+                <button id="cancelCoordinates">Отмена</button>
             </div>
+            <div class="error-message" id="coordinatesError"></div>
         </div>
     </div>
+
+    <script src="./bundle.js"></script>
 </body>
 </html>

@@ -1,115 +1,95 @@
-import '../styles/main.css';
 import { Timeline } from './timeline.js';
-import { parseCoordinates } from './coordinates.js';
+import { Coordinates } from './coordinates.js';
+import '../css/style.css';
 
 class App {
     constructor() {
         this.timeline = new Timeline('timeline');
-        this.currentCoordinates = null;
-        this.pendingText = '';
+        this.modal = document.getElementById('coordinatesModal');
+        this.coordinatesInput = document.getElementById('coordinatesInput');
+        this.confirmBtn = document.getElementById('confirmCoordinates');
+        this.cancelBtn = document.getElementById('cancelCoordinates');
+        this.errorMessage = document.getElementById('coordinatesError');
         
-        this.initializeEventListeners();
+        this.pendingText = null;
+        this.initEventListeners();
     }
 
-    initializeEventListeners() {
+    initEventListeners() {
         const textInput = document.getElementById('textInput');
-        const confirmBtn = document.getElementById('confirmCoordinates');
-        const cancelBtn = document.getElementById('cancelCoordinates');
-        const manualInput = document.getElementById('manualCoordinates');
-        const modal = document.getElementById('coordinatesModal');
-
+        
         textInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && e.target.value.trim()) {
-                this.handleTextInput(e.target.value.trim());
-                e.target.value = '';
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.handleTextInput(textInput.value.trim());
+                textInput.value = '';
             }
         });
 
-        confirmBtn.addEventListener('click', () => {
-            this.handleManualCoordinates(manualInput.value.trim());
-        });
-
-        cancelBtn.addEventListener('click', () => {
-            this.hideModal();
-            this.pendingText = '';
-        });
-
-        manualInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.handleManualCoordinates(manualInput.value.trim());
-            }
+        this.confirmBtn.addEventListener('click', () => this.handleManualCoordinates());
+        this.cancelBtn.addEventListener('click', () => this.closeModal());
+        
+        this.coordinatesInput.addEventListener('input', () => {
+            this.hideError();
         });
     }
 
     async handleTextInput(text) {
+        if (!text) return;
+
         this.pendingText = text;
-        
+
         try {
-            const coordinates = await this.getCurrentPosition();
-            this.addTextPost(text, coordinates);
+            const coords = await Coordinates.getCurrentPosition();
+            this.addPostWithCoordinates(text, coords);
         } catch (error) {
-            console.warn('Geolocation failed:', error);
             this.showCoordinatesModal();
         }
     }
 
-    getCurrentPosition() {
-        return new Promise((resolve, reject) => {
-            if (!navigator.geolocation) {
-                reject(new Error('Geolocation is not supported'));
-                return;
-            }
-
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    resolve({
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude
-                    });
-                },
-                (error) => {
-                    reject(error);
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 5000,
-                    maximumAge: 0
-                }
-            );
-        });
-    }
-
-    handleManualCoordinates(input) {
-        const errorElement = document.getElementById('coordinatesError');
+    async handleManualCoordinates() {
+        const input = this.coordinatesInput.value.trim();
         
         try {
-            const coordinates = parseCoordinates(input);
-            this.addTextPost(this.pendingText, coordinates);
-            this.hideModal();
-            errorElement.textContent = '';
+            const coords = Coordinates.parseCoordinates(input);
+            this.addPostWithCoordinates(this.pendingText, coords);
+            this.closeModal();
         } catch (error) {
-            errorElement.textContent = error.message;
+            this.showError(error.message);
         }
     }
 
-    addTextPost(text, coordinates) {
-        this.timeline.addPost(text, coordinates, 'text');
+    addPostWithCoordinates(text, coords) {
+        this.timeline.addPost(text, {
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+            toString: function() {
+                return `${this.latitude.toFixed(5)}, ${this.longitude.toFixed(5)}`;
+            }
+        });
+        this.pendingText = null;
     }
 
     showCoordinatesModal() {
-        const modal = document.getElementById('coordinatesModal');
-        const manualInput = document.getElementById('manualCoordinates');
-        const errorElement = document.getElementById('coordinatesError');
-        
-        manualInput.value = '';
-        errorElement.textContent = '';
-        modal.style.display = 'block';
-        manualInput.focus();
+        this.modal.style.display = 'block';
+        this.coordinatesInput.value = '';
+        this.hideError();
+        this.coordinatesInput.focus();
     }
 
-    hideModal() {
-        const modal = document.getElementById('coordinatesModal');
-        modal.style.display = 'none';
+    closeModal() {
+        this.modal.style.display = 'none';
+        this.pendingText = null;
+        this.hideError();
+    }
+
+    showError(message) {
+        this.errorMessage.textContent = message;
+        this.errorMessage.style.display = 'block';
+    }
+
+    hideError() {
+        this.errorMessage.style.display = 'none';
     }
 }
 

@@ -1,79 +1,63 @@
-import { parseCoordinates } from '../js/coordinates.js';
+import { Coordinates } from '../src/js/coordinates.js';
 
-describe('parseCoordinates', () => {
-    test('should parse coordinates with space after comma', () => {
-        const input = '51.50851, -0.12572';
-        const result = parseCoordinates(input);
-        
-        expect(result).toEqual({
-            latitude: 51.50851,
-            longitude: -0.12572
-        });
+describe('Coordinates.parseCoordinates', () => {
+    test('парсит координаты с пробелом после запятой', () => {
+        const result = Coordinates.parseCoordinates('51.50851, -0.12572');
+        expect(result.latitude).toBe(51.50851);
+        expect(result.longitude).toBe(-0.12572);
     });
 
-    test('should parse coordinates without space after comma', () => {
-        const input = '51.50851,-0.12572';
-        const result = parseCoordinates(input);
-        
-        expect(result).toEqual({
-            latitude: 51.50851,
-            longitude: -0.12572
-        });
+    test('парсит координаты без пробела после запятой', () => {
+        const result = Coordinates.parseCoordinates('51.50851,-0.12572');
+        expect(result.latitude).toBe(51.50851);
+        expect(result.longitude).toBe(-0.12572);
     });
 
-    test('should parse coordinates with square brackets', () => {
-        const input = '[51.50851, -0.12572]';
-        const result = parseCoordinates(input);
-        
-        expect(result).toEqual({
-            latitude: 51.50851,
-            longitude: -0.12572
-        });
+    test('парсит координаты в квадратных скобках', () => {
+        const result = Coordinates.parseCoordinates('[51.50851, -0.12572]');
+        expect(result.latitude).toBe(51.50851);
+        expect(result.longitude).toBe(-0.12572);
     });
 
-    test('should throw error for invalid format without comma', () => {
-        const input = '51.50851 -0.12572';
-        
+    test('парсит координаты с пробелами вокруг', () => {
+        const result = Coordinates.parseCoordinates('  51.50851 , -0.12572  ');
+        expect(result.latitude).toBe(51.50851);
+        expect(result.longitude).toBe(-0.12572);
+    });
+
+    test('выбрасывает ошибку при неверном количестве координат', () => {
         expect(() => {
-            parseCoordinates(input);
-        }).toThrow('Invalid format: must contain exactly one comma separating latitude and longitude');
+            Coordinates.parseCoordinates('51.50851');
+        }).toThrow('Координаты должны содержать широту и долготу, разделенные запятой');
     });
 
-    test('should throw error for non-numeric coordinates', () => {
-        const input = 'abc, def';
-        
+    test('выбрасывает ошибку при нечисловых координатах', () => {
         expect(() => {
-            parseCoordinates(input);
-        }).toThrow('Invalid coordinates: latitude and longitude must be valid numbers');
+            Coordinates.parseCoordinates('abc, def');
+        }).toThrow('Широта и долгота должны быть числами');
     });
 
-    test('should throw error for out-of-range latitude', () => {
-        const input = '91.0, 0.0';
-        
+    test('выбрасывает ошибку при неверной широте', () => {
         expect(() => {
-            parseCoordinates(input);
-        }).toThrow('Invalid latitude: must be between -90 and 90');
+            Coordinates.parseCoordinates('91, -0.12572');
+        }).toThrow('Широта должна быть в диапазоне от -90 до 90');
     });
 
-    test('should throw error for out-of-range longitude', () => {
-        const input = '0.0, 181.0';
-        
+    test('выбрасывает ошибку при неверной долготе', () => {
         expect(() => {
-            parseCoordinates(input);
-        }).toThrow('Invalid longitude: must be between -180 and 180');
+            Coordinates.parseCoordinates('51.50851, -181');
+        }).toThrow('Долгота должна быть в диапазоне от -180 до 180');
     });
 
-    test('should throw error for empty input', () => {
-        const input = '';
-        
+    test('выбрасывает ошибку при пустой строке', () => {
         expect(() => {
-            parseCoordinates(input);
-        }).toThrow('Invalid input: must be a non-empty string');
+            Coordinates.parseCoordinates('');
+        }).toThrow('Введите координаты');
     });
 
-    test('should throw error for non-string input', () => {
+    test('выбрасывает ошибку при null', () => {
         expect(() => {
-            parseCoordinates(123);
-        }).toThrow('Invalid input: must be a non-empty string');
+            Coordinates.parseCoordinates(null);
+        }).toThrow('Введите координаты');
     });
 });
